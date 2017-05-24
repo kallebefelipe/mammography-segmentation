@@ -12,12 +12,12 @@ from pylab import ginput
 #           'mdb244', 'mdb264', 'mdb265', 'mdb267', 'mdb270', 'mdb271', 'mdb274',
 #           'mdb290', 'mdb312', 'mdb314', 'mdb315']
 
-images = [
-          'mdb264', 'mdb265', 'mdb267', 'mdb270', 'mdb271', 'mdb274',
-          'mdb290', 'mdb312', 'mdb314', 'mdb315']
+# images = [
+#           'mdb264', 'mdb265', 'mdb267', 'mdb270', 'mdb271', 'mdb274',
+#           'mdb290', 'mdb312', 'mdb314', 'mdb315']
 
 
-# images = ['mdb032']
+images = ['mdb032']
 numero_marcacoes = 8
 
 for each in images:

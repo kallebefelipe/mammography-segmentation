@@ -10,10 +10,10 @@ from skimage import io
 #           'mdb195', 'mdb198', 'mdb199', 'mdb202', 'mdb204', 'mdb206', 'mdb207',
 #           'mdb244', 'mdb264', 'mdb265', 'mdb267', 'mdb270', 'mdb271', 'mdb274',
 #           'mdb290', 'mdb312', 'mdb314', 'mdb315']
-# images = ['mdb032']
-images = [
-          'mdb264', 'mdb265', 'mdb267', 'mdb270', 'mdb271', 'mdb274',
-          'mdb290', 'mdb312', 'mdb314', 'mdb315']
+images = ['mdb032']
+# images = [
+#           'mdb264', 'mdb265', 'mdb267', 'mdb270', 'mdb271', 'mdb274',
+#           'mdb290', 'mdb312', 'mdb314', 'mdb315']
 
 for each in images:
     image = io.imread('data/'+each+'_bin.bmp')
