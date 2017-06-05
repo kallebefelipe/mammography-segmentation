@@ -8,8 +8,6 @@ from skimage import io
 import scipy.misc
 from skimage import segmentation
 import scipy.io
-from math import sqrt
-import math
 import csv
 
 beta = [10000, 20000, 30000, 40000]
@@ -25,7 +23,7 @@ medias = []
 numero_marcacao = []
 for pasta in pastas:
     for sub_pasta in sub_pastas:
-        with open('../output/'+pasta+'/'+sub_pasta+'/resultado.csv', "w") as \
+        with open('../output/classico/'+pasta+'/'+sub_pasta+'/resultado.csv', "w") as \
                 resultado:
             output = csv.writer(resultado, quoting=csv.QUOTE_ALL)
 
@@ -79,12 +77,11 @@ for pasta in pastas:
 
             soma = [0] * cont
             for i in images:
-                numbMarkx = 0
-                numbMarky = 0
-                posX = [0] * int(sub_pasta)
-                posY = [0] * int(sub_pasta)
+                count = 0
                 posX_origem = [0] * int(sub_pasta)
                 posY_origem = [0] * int(sub_pasta)
+                posX_externo = [0] * int(sub_pasta)
+                posY_externo = [0] * int(sub_pasta)
                 image = io.imread('../data/imagens/'+i+'.bmp')
                 markers = np.zeros((image.shape[0], image.shape[1]))
 
@@ -93,75 +90,23 @@ for pasta in pastas:
                     for item in data[:int(sub_pasta)]:
                         item = item.replace('\n', '')
                         item = item.split(',')
-                        posX[numbMarkx] = int(item[2])
-                        posY[numbMarky] = int(item[1])
-                        posX_origem[numbMarkx] = int(item[2])
-                        posY_origem[numbMarky] = int(item[1])
-                        numbMarkx = numbMarkx + 1
-                        numbMarky = numbMarky + 1
-                colb = 1
-                posX = list(map(lambda x: x/float(image.shape[0]), posX))
-                posY = list(map(lambda x: x/float(image.shape[1]), posY))
+                        posX_origem[count] = int(item[2])
+                        posY_origem[count] = int(item[1])
+                        count += 1
 
-                xm = 0
-                ym = 0
-                ax = 1
-                ay = 1
-                desviox = 0
-                desvioy = 0
-                constantex = 1
-                constantey = 1
+                    count = 0
 
-                for x in range(0, numbMarkx):
-                    xm = xm + posX[x]
-                xm = xm / numbMarkx
-
-                for y in range(0, numbMarky):
-                    ym = ym + posY[y]
-                ym = ym / numbMarky
-
-                somadorx = 0
-
-                for x in range(0, numbMarkx):
-                    somadorx = somadorx + (math.pow((posX[x] - xm), 2))
-                desviox = sqrt(somadorx / float(numbMarkx-1))
-                somadory = 0
-
-                for y in range(0, numbMarky):
-                    somadory = somadory + (math.pow((posY[y] - ym), 2))
-
-                desvioy = sqrt(somadory / float(numbMarky-1))
-
-                imageShape = np.ones((image.shape[0], image.shape[1]))
-
-                for x in range(0, image.shape[0]):
-                    for y in range(0, image.shape[1]):
-                        x_n = x/float(image.shape[0])
-                        y_n = y/float(image.shape[1])
-                        imageShape[x, y] = \
-                            math.exp(((-1)*math.pow((x_n-xm), 2)) / float(2 * constantex * desviox) + ((-1) * math.pow((y_n-ym), 2))/float(2*constantey*desvioy))
-
-                copia = io.imread('../data/imagens/' + i + '.bmp')
-
-                for x in range(0, image.shape[0]):
-                    for y in range(0, image.shape[1]):
-                        if(imageShape[x, y] > 0.5):
-                            copia[x, y] = 1
-                        else:
-                            copia[x, y] = 0
-
-                contorno = segmentation.mark_boundaries(image, copia,
-                                                        color=(1, 0, 0))
-
-                for x in range(0, image.shape[0]):
-                    for y in range(0, image.shape[1]):
-                        val2 = copia[x, y]
-                        if val2 == 0:
-                            markers[x][y] = 2
+                    for item in data[int(sub_pasta):int(sub_pasta)*2]:
+                        item = item.replace('\n', '')
+                        item = item.split(',')
+                        posX_externo[count] = int(item[2])
+                        posY_externo[count] = int(item[1])
+                        count += 1
 
                 for pos in range(0, int(sub_pasta)):
 
                     markers[posX_origem[pos]][posY_origem[pos]] = 1
+                    markers[posX_externo[pos]][posY_externo[pos]] = 2
 
                 ouro = io.imread('../data/imagens/'+i+'_bin.bmp')
 
@@ -184,7 +129,7 @@ for pasta in pastas:
                                                              labels_rw,
                                                              color=(0, 1, 0))
                             name = \
-                                '../output/'+pasta+'/'+sub_pasta +\
+                                '../output/classico/'+pasta+'/'+sub_pasta +\
                                 '/imagens/'+i+'-'+str(a)+'-'+str(b) +\
                                 '-'+str(c)+'.jpg'
                             scipy.misc.imsave(name, contorno)
@@ -247,7 +192,7 @@ for pasta in pastas:
             medias.append(media)
             output.writerow(media)
 
-            with open('../output/'+pasta+'/'+sub_pasta+'/result_medias.csv',
+            with open('../output/classico/'+pasta+'/'+sub_pasta+'/result_medias.csv',
                       "w") as result_medias:
                 output_2 = csv.writer(result_medias, quoting=csv.QUOTE_ALL)
 
@@ -274,7 +219,7 @@ for pasta in pastas:
                             pos_2 += 8
                             output_2.writerow(linha)
 
-with open('../output/resultados.csv', "w") as output:
+with open('../output/classico/resultados.csv', "w") as output:
     saida = csv.writer(output, quoting=csv.QUOTE_ALL)
     cabecalho_1 = []
     cabecalho_1.append("")

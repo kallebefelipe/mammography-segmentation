@@ -33,8 +33,8 @@ for i in images:
                 marcacoes.append([2, x, y])
     for each in marcacoes:
         if each[0] == 1:
-            f.write('1,'+str(each[1])+','+str(each[2])+'\n')
+            f.write('1,'+str(each[2])+','+str(each[1])+'\n')
     for each in marcacoes:
         if each[0] == 2:
-            f.write('2,'+str(each[1])+','+str(each[2])+'\n')
+            f.write('2,'+str(each[2])+','+str(each[1])+'\n')
     f.close()
