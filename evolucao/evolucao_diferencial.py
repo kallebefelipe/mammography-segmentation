@@ -9,7 +9,6 @@ def fitnessFunction(individual, N, image):
     soma = 0
     for i in range(0, N):
         soma += image[individual[i][0]][individual[i][1]]
-
     return soma
 
 
@@ -28,7 +27,7 @@ def avaliar_result(ouro, individual):
     for semente in individual:
         if ouro[semente[0]][semente[1]] == 255:
             count_correct += 1
-    return (count_correct*100)/len(individual)
+    return str((count_correct*100)/len(individual))
 
 
 images = ['mdb001', 'mdb002',  'mdb005', 'mdb010', 'mdb012',
@@ -44,107 +43,154 @@ images = ['mdb001', 'mdb002',  'mdb005', 'mdb010', 'mdb012',
           'mdb270', 'mdb271', 'mdb274', 'mdb290', 'mdb312',
           'mdb314', 'mdb315']
 
+images = ['mdb001']
+
 F = 1
 CR = [0.5, 0.6, 0.9]
 N = [5, 10, 15, 20]
 PopulationSize = [10, 20, 30]
+CR = [0.5]
+N = [5]
+PopulationSize = [10]
+
 
 interation = 10
 
-for pasta in range(1, 11):
+
+for pasta in range(1, 2):
     with open('resultados/'+str(pasta)+'/resultado/resultado.csv', "w") as \
                 resultado:
-            output = csv.writer(resultado, quoting=csv.QUOTE_ALL)
+        output = csv.writer(resultado, quoting=csv.QUOTE_ALL)
 
-            cabecalho_1 = []
-            cabecalho_1.append("")
+        cabecalho_1 = []
+        cabecalho_1.append("")
+        count = 0
+        for cr in CR:
+            for n in N:
+                for population_size in PopulationSize:
+                    titulo = 'F= '+str(F)+', CR= '+str(cr) + \
+                             ', Pop= '+str(population_size) + \
+                             ', Sement='+str(n)
+                    cabecalho_1.append(titulo)
+                    cabecalho_1.append('')
+                    count += 1
+        output.writerow(cabecalho_1)
+
+        planilha = []
+        soma = [0] * count
+        matriz_resultado = []
+        for path in images:
+            row = []
+            row_result = []
+            row.append(path)
+            image = io.imread('../data/imagens/'+path+'.bmp')
+            ouro = io.imread('../data/imagens/'+path+'_bin.bmp')
+            max_x = image.shape[0]
+            max_y = image.shape[1]
+            tamanho_image = [max_x, max_y]
+
+            pos_soma = 0
             for cr in CR:
                 for n in N:
                     for population_size in PopulationSize:
-                        titulo = 'F= '+str(F)+', CR= '+str(CR) + \
-                                 ', Pop= '+str(PopulationSize) + \
-                                 ', Sement='+str(N)
-                        cabecalho_1.append(titulo)
-                        cabecalho_1.append('')
-            output.writerow(cabecalho_1)
+                        population = []
+                        i = 0
+                        while (i < population_size):
+                            individual = generateIndividual(max_x, max_y, n)
+                            population.append(individual)
+                            i += 1
 
-with open('resultados.csv', 'w') as fp:
-    file = csv.writer(fp, quoting=csv.QUOTE_ALL)
-    file.writerow(['parametros', 'percentual_acerto', 'desvio_padrao'])
+                        i = 0
+                        while (i < 3000):
+                            print(i)
+                            i += 1
+                            j = 0
+                            while (j < population_size):
+                                x = random.randint(0, population_size-1)
 
-    planilha = []
-    for path in images:
-        population = []
-        image = io.imread('../data/imagens/'+path+'.bmp')
-        max_x = image.shape[0]
-        max_y = image.shape[1]
-        tamanho_image = [max_x, max_y]
+                                while True:
+                                    a = random.randint(0, population_size-1)
+                                    if a != x:
+                                        break
+                                while True:
+                                    b = random.randint(0, population_size-1)
+                                    if b != x or b != a:
+                                        break
+                                while True:
+                                    c = random.randint(0, population_size-1)
+                                    if c != x or c != a or c != b:
+                                        break
 
-        i = 0
-        while (i < PopulationSize):
-            individual = generateIndividual(max_x, max_y, N)
-            population.append(individual)
-            i += 1
+                                R = random.randint(0, n-1)
 
-        i = 0
-        while (i < 3000):
-            print(i)
-            i += 1
-            j = 0
-            while (j < PopulationSize):
-                x = random.randint(0, PopulationSize-1)
+                                original = population[x]
+                                candidate = original
 
-                while True:
-                    a = random.randint(0, PopulationSize-1)
-                    if a != x:
-                        break
-                while True:
-                    b = random.randint(0, PopulationSize-1)
-                    if b != x or b != a:
-                        break
-                while True:
-                    c = random.randint(0, PopulationSize-1)
-                    if c != x or c != a or c != b:
-                        break
+                                individual1 = population[a]
+                                individual2 = population[b]
+                                individual3 = population[c]
 
-                R = random.randint(0, N-1)
+                                for w in range(0, n-1):
+                                    if w == R or random.uniform(0, 1) < cr:
+                                        pos = random.randint(0, 1)
+                                        candidate[w][pos] = \
+                                            (abs(individual1[w][pos]+F*(individual2[w][pos] -
+                                                                        individual3[w][pos])) %
+                                             tamanho_image[pos])
 
-                original = population[x]
-                candidate = original
+                                if fitnessFunction(original, n, image) < \
+                                        fitnessFunction(candidate, n, image):
+                                    population.remove(original)
+                                    population.append(candidate)
 
-                individual1 = population[a]
-                individual2 = population[b]
-                individual3 = population[c]
+                                j += 1
 
-                for w in range(0, N-1):
-                    if w == R or random.uniform(0, 1) < CR:
-                        pos = random.randint(0, 1)
-                        candidate[w][pos] = \
-                            (abs(individual1[w][pos]+F*(individual2[w][pos] -
-                                                        individual3[w][pos])) %
-                             tamanho_image[pos])
+                        i = 0
+                        bestFitness = [[0, 0]] * n
+                        while(i < population_size):
+                            individual = population[i]
+                            if fitnessFunction(bestFitness, n, image) < \
+                                    fitnessFunction(individual, n, image):
+                                bestFitness = individual
+                            i += 1
 
-                if fitnessFunction(original, N, image) < \
-                        fitnessFunction(candidate, N, image):
-                    population.remove(original)
-                    population.append(candidate)
+                        image_rgb = skimage.color.grey2rgb(image)
+                        for i in range(0, n):
+                            image_rgb[bestFitness[i][0]][bestFitness[i][1]] = [255, 0, 0]
+                            image_rgb[bestFitness[i][0]][bestFitness[i][1]-1] = [255, 0, 0]
+                            image_rgb[bestFitness[i][0]][bestFitness[i][1]+1] = [255, 0, 0]
+                            image_rgb[bestFitness[i][0]+1][bestFitness[i][1]] = [255, 0, 0]
+                            image_rgb[bestFitness[i][0]-1][bestFitness[i][1]] = [255, 0, 0]
+                        scipy.misc.imsave('resultados/'+str(pasta) +
+                                          '/images/'+path+'-'+str(cr) +
+                                          '-'+str(n)+'-'+str(population_size) +
+                                          '.bmp', image_rgb)
+                        percent = avaliar_result(ouro, bestFitness)
+                        row.append(avaliar_result(ouro, bestFitness))
+                        soma[pos_soma] += float(percent)
 
-                j += 1
+                        row_result.append(float(percent))
+                        pos_soma += 1
+            matriz_resultado.append(row_result)
+            planilha.append(row)
 
-        i = 0
-        bestFitness = [[0, 0]] * N
-        while(i < PopulationSize):
-            individual = population[i]
-            if fitnessFunction(bestFitness, N, image) < \
-                    fitnessFunction(individual, N, image):
-                bestFitness = individual
-            i += 1
+        row = ['media']
+        media = []
+        for som in soma:
+            row.append(str(som/len(images)))
+            media.append(som/len(images))
+        planilha.append(row)
 
-        image = skimage.color.grey2rgb(image)
-        for i in range(0, N):
-            image[bestFitness[i][0]][bestFitness[i][1]] = [255, 0, 0]
-        scipy.misc.imsave('output/'+path+'.bmp', image)
+        desvio = []
+        somatorio = 0
+        for col in range(0, len(matriz_resultado[0])):
+            for lin in range(0,     len(matriz_resultado)):
+                somatorio += (matriz_resultado[lin][col]-media[col])**2
+            desvio.append((somatorio/len(images)-1)**(1/2))
 
-        lista.append('F= '+str(F)+', CR= '+str(CR) +
-                     ', Pop= '+str(PopulationSize)+', Sement='+str(N))
-        lista.writerows(lista)
+        row = ['desvio']
+        for each in desvio:
+            row.append(each)
+
+        planilha.append(row)
+        output.writerow(planilha)
