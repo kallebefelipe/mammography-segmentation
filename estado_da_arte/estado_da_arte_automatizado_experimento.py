@@ -5,6 +5,7 @@ Fuzzy witch normalizaton
 import numpy as np
 from skimage.segmentation import random_walker
 from skimage import io
+import scipy.io as sio
 import scipy.misc
 from skimage import segmentation
 import scipy.io
@@ -18,11 +19,9 @@ mode = ['cg_mg', 'cg', 'bf']
 
 constante = [5]
 
-
 medias = []
 numero_marcacao = []
-sub_pasta = 5
-with open('../output/evolucao/resultado.csv', "w") as \
+with open('../output/fuzzy-sementes-iniciais/resultado.csv', "w") as \
         resultado:
     output = csv.writer(resultado, quoting=csv.QUOTE_ALL)
 
@@ -78,24 +77,28 @@ with open('../output/evolucao/resultado.csv', "w") as \
     for i in images:
         numbMarkx = 0
         numbMarky = 0
-        posX = [0] * int(sub_pasta)
-        posY = [0] * int(sub_pasta)
-        posX_origem = [0] * int(sub_pasta)
-        posY_origem = [0] * int(sub_pasta)
+        posX = [0] * 6
+        posY = [0] * 6
+        posX_origem = [0] * 6
+        posY_origem = [0] * 6
         image = io.imread('../data/imagens/'+i+'.bmp')
         markers = np.zeros((image.shape[0], image.shape[1]))
 
-        with open('../evolucao/sementes/'+i+'.txt') as f:
-            data = f.readlines()
-            for item in data[:int(sub_pasta)]:
-                item = item.replace('\n', '')
-                item = item.split(',')
-                posX[numbMarkx] = int(item[1])
-                posY[numbMarky] = int(item[2])
-                posX_origem[numbMarkx] = int(item[1])
-                posY_origem[numbMarky] = int(item[2])
-                numbMarkx = numbMarkx + 1
-                numbMarky = numbMarky + 1
+        mat_contents = sio.loadmat('../data/labels_roi/'+i+'.mat')
+        oct_cells = mat_contents['labels']
+        val = oct_cells[0, 1]
+        markers = np.zeros((image.shape[0], image.shape[1]))
+
+        for x in range(0, image.shape[0]):
+            for y in range(0, image.shape[1]):
+                val1 = oct_cells[x, y]
+
+                if val1 == 1:
+                    posX[numbMarkx] = x         #atribuicao no vetor de x's
+                    posY[numbMarky] = y         #atribuicao no vetor de y's
+                    numbMarkx = numbMarkx + 1
+                    numbMarky = numbMarky + 1
+
         colb = 1
         posX = list(map(lambda x: x/float(image.shape[0]), posX))
         posY = list(map(lambda x: x/float(image.shape[1]), posY))
@@ -135,12 +138,8 @@ with open('../output/evolucao/resultado.csv', "w") as \
             for y in range(0, image.shape[1]):
                 x_n = x/float(image.shape[0])
                 y_n = y/float(image.shape[1])
-                try:
-                    imageShape[x, y] = \
-                        math.exp(((-1)*math.pow((x_n-xm), 2)) / float(2 * constantex * desviox) + ((-1) * math.pow((y_n-ym), 2))/float(2*constantey*desvioy))
-                except:
-                    imageShape[x, y] = \
-                        math.exp(((-1)*math.pow((x_n-xm), 2)) / float(2 * constantex * 1) + ((-1) * math.pow((y_n-ym), 2))/float(2*constantey*1))
+                imageShape[x, y] = \
+                    math.exp(((-1)*math.pow((x_n-xm), 2)) / float(2 * constantex * desviox) + ((-1) * math.pow((y_n-ym), 2))/float(2*constantey*desvioy))
 
         copia = io.imread('../data/imagens/' + i + '.bmp')
 
@@ -156,13 +155,13 @@ with open('../output/evolucao/resultado.csv', "w") as \
 
         for x in range(0, image.shape[0]):
             for y in range(0, image.shape[1]):
+                val1 = oct_cells[x, y]
                 val2 = copia[x, y]
+
+                if val1 == 1:
+                    markers[x][y] = 1
                 if val2 == 0:
                     markers[x][y] = 2
-
-        for pos in range(0, int(sub_pasta)):
-
-            markers[posX_origem[pos]][posY_origem[pos]] = 1
 
         ouro = io.imread('../data/imagens/'+i+'_bin.bmp')
 
@@ -185,7 +184,7 @@ with open('../output/evolucao/resultado.csv', "w") as \
                                                      labels_rw,
                                                      color=(0, 1, 0))
                     name = \
-                        '../output/evolucao/imagens/'+i+'-'+str(a)+'-'+str(b) +\
+                        '../output/fuzzy-sementes-iniciais/imagens/'+i+'-'+str(a)+'-'+str(b) +\
                         '-'+str(c)+'.jpg'
                     scipy.misc.imsave(name, contorno)
                     labels_rw = (2-labels_rw)
@@ -245,7 +244,7 @@ with open('../output/evolucao/resultado.csv', "w") as \
     medias.append(media)
     output.writerow(media)
 
-    with open('../output/evolucao/result_medias.csv',
+    with open('../output/fuzzy-sementes-iniciais/result_medias.csv',
               "w") as result_medias:
         output_2 = csv.writer(result_medias, quoting=csv.QUOTE_ALL)
 
