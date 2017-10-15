@@ -2,20 +2,21 @@ from __future__ import division
 from skimage import io
 import scipy.misc
 import skimage
-import random
 from pso import PSO
 from pso import fitnessFunction
 import csv
 from datetime import datetime
+from frw_pso import frw_pso
 
 
-def avaliar_result(ouro, individual):
-    count_correct = 0
-    for count, semente in enumerate(individual):
-        if (count % 2) == 0:
-            if ouro[individual[count]][individual[count+1]] == 255:
-                count_correct += 1
-    return str((count_correct*100)/(len(individual)/2))
+def avaliar_result(image, ouro, individua, pasta, path, n):
+    # count_correct = 0
+    # for count, semente in enumerate(individual):
+    #     if (count % 2) == 0:
+    #         if ouro[individual[count]][individual[count+1]] == 255:
+    #             count_correct += 1
+    # return str((count_correct*100)/(len(individual)/2))
+    return frw_pso(image, ouro, individua, pasta, path, n)
 
 
 images = ['mdb001', 'mdb002',  'mdb005', 'mdb010', 'mdb012',
@@ -32,8 +33,11 @@ images = ['mdb001', 'mdb002',  'mdb005', 'mdb010', 'mdb012',
           'mdb314', 'mdb315']
 
 N = [10, 20, 30, 40]
+N = [6, 10, 14, 20]
 PopulationSize = [10, 20, 30]
+PopulationSize = [20]
 interation = 10
+interation = 1
 
 
 medias_interacao = []
@@ -100,8 +104,12 @@ for pasta in range(1, interation+1):
                                       '/images/'+path+'-'+
                                       '-'+str(n)+'-'+str(population_size) +
                                       '.bmp', image_rgb)
-                    percent = avaliar_result(ouro, bestFitness)
-                    row.append(avaliar_result(ouro, bestFitness))
+                    percent = avaliar_result(
+                        image, ouro, bestFitness, pasta, path, n
+                    )
+                    row.append(avaliar_result(
+                        image, ouro, bestFitness, pasta, path, n)
+                    )
                     soma[pos_soma] += float(percent)
 
                     row_result.append(float(percent))

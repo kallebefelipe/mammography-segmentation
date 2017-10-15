@@ -30,7 +30,6 @@ class Particle:
 
     def evaluate(self, costFunc):
         self.err_i = costFunc(self.position_i)
-
         if self.err_i > self.err_best_i or self.err_best_i == -1:
             self.pos_best_i = self.position_i
             self.err_best_i = self.err_i

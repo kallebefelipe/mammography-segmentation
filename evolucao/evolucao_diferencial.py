@@ -4,13 +4,38 @@ import random
 import skimage
 import csv
 from datetime import datetime
+from frw import frw
+import math
 
 
-def fitnessFunction(individual, N, image):
+def dist_euclidiana(p1, p2):
+    soma = 0
+    for i in range(len(p1)):
+        soma = soma + (p2[i] - p1[i])**2
+    distancia = math.sqrt(soma)
+    return distancia
+
+
+def fitnessFunction1(individual, N, image):
     soma = 0
     for i in range(0, N):
         soma += image[individual[i][0]][individual[i][1]]
     return soma
+
+
+def fitnessFunction2(individual):
+    soma = 0
+    for i in range(0, len(individual)):
+        for j in range(0, len(individual)):
+            soma += dist_euclidiana(individual[i], individual[j])
+    return soma
+
+
+# def fitnessFunction(individual, N, image):
+#     soma = 0
+#     for i in range(0, N):
+#         soma += image[individual[i][0]][individual[i][1]]
+#     return soma
 
 
 def generateIndividual(max_x, max_y, N):
@@ -23,12 +48,15 @@ def generateIndividual(max_x, max_y, N):
     return individual
 
 
-def avaliar_result(ouro, individual):
-    count_correct = 0
-    for semente in individual:
-        if ouro[semente[0]][semente[1]] == 255:
-            count_correct += 1
-    return str((count_correct*100)/len(individual))
+def avaliar_result(
+        image, ouro, individua, pasta, path, n, cr
+        ):
+    # count_correct = 0
+    # for semente in individual:
+    #     if ouro[semente[0]][semente[1]] == 255:
+    #         count_correct += 1
+    # return str((count_correct*100)/len(individual))
+    return frw(image, ouro, individua, pasta, path, n, cr)
 
 
 images = ['mdb001', 'mdb002',  'mdb005', 'mdb010', 'mdb012',
@@ -46,15 +74,19 @@ images = ['mdb001', 'mdb002',  'mdb005', 'mdb010', 'mdb012',
 
 F = 1
 CR = [0.5, 0.6, 0.9]
+CR = [0.9]
 N = [5, 10, 15, 20]
+N = [3, 5, 7, 10]
 PopulationSize = [10, 20, 30]
+PopulationSize = [30]
 interation = 10
+interation = 1
 
 
 medias_interacao = []
 desvios_interacao = []
 for pasta in range(1, interation+1):
-    with open('resultados/'+str(pasta)+'/resultado/resultado.csv', "w") as \
+    with open('resultados_de/'+str(pasta)+'/resultado/resultado.csv', "w") as \
                 resultado:
         output = csv.writer(resultado, quoting=csv.QUOTE_ALL)
 
@@ -134,8 +166,12 @@ for pasta in range(1, interation+1):
                                                                         individual3[w][pos])) %
                                              tamanho_image[pos])
 
-                                if fitnessFunction(original, n, image) < \
-                                        fitnessFunction(candidate, n, image):
+                                # if fitnessFunction(original, n, image) < \
+                                #         fitnessFunction(candidate, n, image):
+                                if fitnessFunction1(original, n, image) < \
+                                        fitnessFunction1(candidate, n, image) and \
+                                        fitnessFunction2(original) >= \
+                                        fitnessFunction2(candidate):
                                     population.remove(original)
                                     population.append(candidate)
 
@@ -145,8 +181,12 @@ for pasta in range(1, interation+1):
                         bestFitness = [[0, 0]] * n
                         while(i < population_size):
                             individual = population[i]
-                            if fitnessFunction(bestFitness, n, image) < \
-                                    fitnessFunction(individual, n, image):
+                            # if fitnessFunction(bestFitness, n, image) < \
+                            #         fitnessFunction(individual, n, image):
+                            if fitnessFunction1(bestFitness, n, image) < \
+                                    fitnessFunction1(individual, n, image) and \
+                                    fitnessFunction2(original) >= \
+                                    fitnessFunction2(candidate):
                                 bestFitness = individual
                             i += 1
 
@@ -169,12 +209,16 @@ for pasta in range(1, interation+1):
                                 image_rgb[bestFitness[i][0]-1][bestFitness[i][1]] = [255, 0, 0]
                             except:
                                 pass
-                        scipy.misc.imsave('resultados/'+str(pasta) +
+                        scipy.misc.imsave('resultados_de/'+str(pasta) +
                                           '/images/'+path+'-'+str(cr) +
                                           '-'+str(n)+'-'+str(population_size) +
                                           '.bmp', image_rgb)
-                        percent = avaliar_result(ouro, bestFitness)
-                        row.append(avaliar_result(ouro, bestFitness))
+                        percent = avaliar_result(
+                            image, ouro, bestFitness,
+                            pasta, path, n, cr)
+                        row.append(avaliar_result(
+                            image, ouro, bestFitness,
+                            pasta, path, n, cr))
                         soma[pos_soma] += float(percent)
 
                         row_result.append(float(percent))
@@ -211,7 +255,7 @@ for pasta in range(1, interation+1):
         output.writerow(row)
 
 
-with open('resultados/resultado_final.csv', "w") as \
+with open('resultados_de/resultado_final.csv', "w") as \
                 resultado:
     output = csv.writer(resultado, quoting=csv.QUOTE_ALL)
 
